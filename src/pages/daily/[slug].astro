@@ -1,0 +1,31 @@
+---
+export const prerender = false;
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getDailyLog } from '../../lib/neon';
+import { marked } from 'marked';
+
+const { slug } = Astro.params;
+const entry = await getDailyLog(slug!);
+
+if (!entry) return Astro.redirect('/404');
+
+const html = await marked(entry.content);
+const date = new Date(entry.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+---
+
+<BaseLayout title={entry.title} currentPath="/daily">
+  <article class="max-w-3xl mx-auto px-4 pt-20 pb-16">
+    <div class="mb-8">
+      <a href="/daily" class="text-sm text-purple-400 hover:underline">&larr; Back to daily log</a>
+    </div>
+    <time class="text-sm text-gray-500">{date}</time>
+    <h1 class="text-4xl font-bold mt-2 mb-4">{entry.title}</h1>
+    <div class="flex flex-wrap gap-2 mb-8">
+      {(entry.tags || []).map((tag) => (
+        <span class="px-3 py-1 text-sm rounded bg-purple-500/10 text-purple-400">{tag}</span>
+      ))}
+    </div>
+    <div class="prose prose-invert max-w-none" set:html={html} />
+  </article>
+</BaseLayout>
