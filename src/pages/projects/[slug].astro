@@ -1,0 +1,37 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getAllProjects, getProject } from '../../lib/projects';
+import { marked } from 'marked';
+
+export async function getStaticPaths() {
+  const projects = await getAllProjects();
+  return projects.map((p) => ({ params: { slug: p.slug } }));
+}
+
+const { slug } = Astro.params;
+const project = await getProject(slug!);
+
+if (!project) return Astro.redirect('/404');
+const html = await marked(project.body);
+---
+
+<BaseLayout title={project.title} currentPath="/projects">
+  <article class="max-w-3xl mx-auto px-4 pt-20 pb-16">
+    <div class="mb-8">
+      <a href="/projects" class="text-sm text-cyan-400 hover:underline">&larr; Back to projects</a>
+    </div>
+    <h1 class="text-4xl font-bold mb-4">{project.title}</h1>
+    <div class="flex flex-wrap gap-2 mb-8">
+      {project.tags.map((tag) => (
+        <span class="px-3 py-1 text-sm rounded bg-cyan-500/10 text-cyan-400">{tag}</span>
+      ))}
+    </div>
+    <div class="prose prose-invert max-w-none">
+      <Fragment set:html={html} />
+    </div>
+    <div class="flex gap-4 mt-12">
+      {project.github && <a href={project.github} class="text-cyan-400 hover:underline" target="_blank">View on GitHub</a>}
+      {project.demo && <a href={project.demo} class="text-cyan-400 hover:underline" target="_blank">Live Demo</a>}
+    </div>
+  </article>
+</BaseLayout>

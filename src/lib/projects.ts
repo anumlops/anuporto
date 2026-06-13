@@ -16,7 +16,7 @@ export async function getAllProjects(): Promise<Project[]> {
   const entries = await getCollection('projects');
   return entries
     .map((e) => ({
-      slug: e.slug,
+      slug: e.id.replace(/\.md$/, ''),
       ...e.data,
       body: e.body,
     }))
