@@ -1,0 +1,33 @@
+---
+export const prerender = false;
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getTool } from '../../lib/neon';
+import { marked } from 'marked';
+
+const { slug } = Astro.params;
+const tool = await getTool(slug!);
+
+if (!tool) return Astro.redirect('/404');
+
+const html = tool.long_description ? await marked(tool.long_description) : '';
+---
+
+<BaseLayout title={tool.name} currentPath="/tools">
+  <article class="max-w-3xl mx-auto px-4 pt-20 pb-16">
+    <div class="mb-8">
+      <a href="/tools" class="text-sm text-emerald-400 hover:underline">&larr; Back to tools</a>
+    </div>
+    <h1 class="text-4xl font-bold mb-4">{tool.name}</h1>
+    <div class="flex flex-wrap gap-2 mb-8">
+      {(tool.tech_stack || []).map((tech) => (
+        <span class="px-3 py-1 text-sm rounded bg-emerald-500/10 text-emerald-400">{tech}</span>
+      ))}
+    </div>
+    {html && <div class="prose prose-invert max-w-none" set:html={html} />}
+    <div class="flex gap-4 mt-12">
+      {tool.repo_url && <a href={tool.repo_url} class="text-emerald-400 hover:underline" target="_blank">Source Code</a>}
+      {tool.demo_url && <a href={tool.demo_url} class="text-emerald-400 hover:underline" target="_blank">Live Demo</a>}
+    </div>
+  </article>
+</BaseLayout>
