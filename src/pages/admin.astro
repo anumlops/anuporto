@@ -1,0 +1,63 @@
+---
+export const prerender = false;
+
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Admin" description="Daily log editor">
+  <section class="max-w-3xl mx-auto px-4 pt-20 pb-16">
+    <h1 class="text-4xl font-bold mb-8">New Daily Log Entry</h1>
+    <form id="log-form" class="space-y-6">
+      <div>
+        <label class="block text-sm text-gray-400 mb-2">Slug</label>
+        <input type="text" id="slug" required class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 focus:border-cyan-500 outline-none" />
+      </div>
+      <div>
+        <label class="block text-sm text-gray-400 mb-2">Title</label>
+        <input type="text" id="title" required class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 focus:border-cyan-500 outline-none" />
+      </div>
+      <div>
+        <label class="block text-sm text-gray-400 mb-2">Tags (comma separated)</label>
+        <input type="text" id="tags" placeholder="LLM, agents, tools" class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 focus:border-cyan-500 outline-none" />
+      </div>
+      <div>
+        <label class="block text-sm text-gray-400 mb-2">Content (Markdown)</label>
+        <textarea id="content" rows="15" required class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 focus:border-cyan-500 outline-none font-mono text-sm"></textarea>
+      </div>
+      <button type="submit" class="px-6 py-3 bg-cyan-500 text-gray-950 font-semibold rounded-lg hover:bg-cyan-400 transition">Publish Entry</button>
+    </form>
+    <div id="message" class="mt-4"></div>
+  </section>
+
+  <script>
+    const password = prompt('Enter admin password:');
+    const form = document.getElementById('log-form');
+    const msg = document.getElementById('message');
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const slug = document.getElementById('slug').value;
+      const title = document.getElementById('title').value;
+      const tagsInput = document.getElementById('tags').value;
+      const tags = tagsInput.split(',').map(t => t.trim()).filter(Boolean);
+      const content = document.getElementById('content').value;
+
+      try {
+        const res = await fetch('/api/daily', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${password}` },
+          body: JSON.stringify({ slug, title, content, tags }),
+        });
+        if (res.ok) {
+          msg.innerHTML = '<p class="text-emerald-400">Entry published!</p>';
+          form.reset();
+        } else {
+          const err = await res.json();
+          msg.innerHTML = `<p class="text-red-400">Error: ${err.error}</p>`;
+        }
+      } catch (err) {
+        msg.innerHTML = `<p class="text-red-400">Network error: ${String(err)}</p>`;
+      }
+    });
+  </script>
+</BaseLayout>
