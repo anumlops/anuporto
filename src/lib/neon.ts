@@ -1,6 +1,10 @@
 import { neon } from '@neondatabase/serverless';
 
-const sql = neon(import.meta.env.DATABASE_URL);
+const url = import.meta.env.DATABASE_URL;
+if (!url) {
+  throw new Error('DATABASE_URL environment variable is required');
+}
+const sql = neon(url);
 
 export interface DailyLog {
   id: string;
@@ -18,7 +22,7 @@ export interface Tool {
   slug: string;
   name: string;
   description: string;
-  long_desc: string;
+  long_description: string;
   tech_stack: string[];
   repo_url: string;
   demo_url: string;
